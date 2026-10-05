@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RNFS from 'react-native-fs';
-import { initLlama, type LlamaContext } from 'llama.rn';
+import { getBackendDevicesInfo, initLlama, type LlamaContext } from 'llama.rn';
 import { SAMPLE_DOCUMENT } from './src/sampleDocument';
 import { findRelevantPassages, splitIntoChunks } from './src/retrieval';
 
@@ -48,7 +48,20 @@ export default function App() {
         } else {
           modelPath = `${RNFS.MainBundlePath}/${MODEL_FILENAME}`;
         }
-        loadedContext = await initLlama({ model: modelPath, use_mlock: true, n_ctx: 2048, n_gpu_layers: Platform.OS === 'ios' ? 99 : 0 });
+        const htpDevices = Platform.OS === 'android'
+          ? (await getBackendDevicesInfo())
+              .filter(({ deviceName }) => deviceName.startsWith('HTP'))
+              .map(({ deviceName }) => deviceName)
+          : [];
+        loadedContext = await initLlama({
+          model: modelPath,
+          use_mlock: true,
+          n_ctx: 2048,
+          // Use HTP only when this native build exposes it. CPU-only Android
+          // builds and devices without a compatible NPU stay on CPU.
+          n_gpu_layers: Platform.OS === 'ios' || htpDevices.length ? 99 : 0,
+          ...(htpDevices.length ? { devices: htpDevices } : {}),
+        });
         if (cancelled) { await loadedContext.release(); return; }
         setContext(loadedContext);
       } catch (error) {
@@ -100,7 +113,7 @@ export default function App() {
     const prompt = question.trim();
     if (!prompt || !context || busy) return;
 
-    const relevant = findRelevantPassages(chunks, prompt);
+    const relevant = findRelevantPassages(chunks, prompt, 3);
     setQuestion('');
     setMessages((previous) => [...previous, { role: 'user', text: prompt }]);
     if (!relevant.length || relevant[0].score < 0.08) {
@@ -109,6 +122,9 @@ export default function App() {
     }
 
     setBusy(true);
+    let streamedText = '';
+    let tokensSinceUpdate = 0;
+    setMessages((previous) => [...previous, { role: 'assistant', text: 'Thinking on device…' }]);
     try {
       const evidence = relevant.map((item, index) => `[Passage ${index + 1}]\n${item.text}`).join('\n\n');
       const result = await context.completion({
@@ -122,13 +138,36 @@ export default function App() {
             content: `Document excerpts:\n<document>\n${evidence}\n</document>\n\nQuestion: ${prompt}`,
           },
         ],
-        n_predict: 180,
+        // Keep answers concise: decoding fewer tokens is the largest practical
+        // latency win for this small on-device model.
+        n_predict: 120,
         temperature: 0.2,
         stop: STOP_WORDS,
+      }, ({ token }) => {
+        streamedText += token;
+        tokensSinceUpdate += 1;
+        // Batch UI updates to avoid re-rendering the full chat for every token.
+        if (tokensSinceUpdate >= 4) {
+          tokensSinceUpdate = 0;
+          setMessages((previous) => previous.map((message, index) =>
+            index === previous.length - 1 && message.role === 'assistant'
+              ? { ...message, text: streamedText }
+              : message,
+          ));
+        }
       });
-      setMessages((previous) => [...previous, { role: 'assistant', text: result.text.trim() || 'The model returned an empty answer.' }]);
+      const answer = result.text.trim() || streamedText.trim() || 'The model returned an empty answer.';
+      setMessages((previous) => previous.map((message, index) =>
+        index === previous.length - 1 && message.role === 'assistant'
+          ? { ...message, text: answer }
+          : message,
+      ));
     } catch {
-      setMessages((previous) => [...previous, { role: 'assistant', text: 'The local model could not answer. Try a shorter question.' }]);
+      setMessages((previous) => previous.map((message, index) =>
+        index === previous.length - 1 && message.role === 'assistant'
+          ? { ...message, text: streamedText.trim() || 'The local model could not answer. Try a shorter question.' }
+          : message,
+      ));
     } finally {
       setBusy(false);
     }
