@@ -11,7 +11,10 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		C492C8A9463E5DBE1B39EC04 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		A80C6D9F31844A928C8F2911 /* Qwen2.5-0.5B-Instruct-Q4_K_M.gguf in Resources */ = {isa = PBXBuildFile; fileRef = A80C6D9F31844A928C8F2912 /* Qwen2.5-0.5B-Instruct-Q4_K_M.gguf */; };
+		D13F7B0A2C884E19A2317C42 /* DocumentFilePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = D13F7B0A2C884E19A2317C43 /* DocumentFilePicker.m */; };
+		D13F7B0A2C884E19A2317C44 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D13F7B0A2C884E19A2317C45 /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,7 +27,9 @@
 		5DCACB8F33CDC322A6C60F78 /* libPods-BundledOfflineDocChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BundledOfflineDocChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BundledOfflineDocChat/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BundledOfflineDocChat/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		A80C6D9F31844A928C8F2912 /* Qwen2.5-0.5B-Instruct-Q4_K_M.gguf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Qwen2.5-0.5B-Instruct-Q4_K_M.gguf; path = ../assets/models/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf; sourceTree = SOURCE_ROOT; };
+		A80C6D9F31844A928C8F2912 /* Qwen2.5-0.5B-Instruct-Q4_K_M.gguf */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"; path = "../assets/models/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"; sourceTree = SOURCE_ROOT; };
+		D13F7B0A2C884E19A2317C43 /* DocumentFilePicker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BundledOfflineDocChat/DocumentFilePicker.m; sourceTree = "<group>"; };
+		D13F7B0A2C884E19A2317C45 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.library; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -34,6 +39,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-BundledOfflineDocChat.a in Frameworks */,
+				D13F7B0A2C884E19A2317C44 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -48,6 +54,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				A80C6D9F31844A928C8F2912 /* Qwen2.5-0.5B-Instruct-Q4_K_M.gguf */,
+				D13F7B0A2C884E19A2317C43 /* DocumentFilePicker.m */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 			);
 			name = BundledOfflineDocChat;
@@ -58,6 +65,7 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-BundledOfflineDocChat.a */,
+				D13F7B0A2C884E19A2317C45 /* libz.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -163,6 +171,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				A80C6D9F31844A928C8F2911 /* Qwen2.5-0.5B-Instruct-Q4_K_M.gguf in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				C492C8A9463E5DBE1B39EC04 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,9 +202,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BundledOfflineDocChat/Pods-BundledOfflineDocChat-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BundledOfflineDocChat/Pods-BundledOfflineDocChat-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -232,9 +245,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BundledOfflineDocChat/Pods-BundledOfflineDocChat-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BundledOfflineDocChat/Pods-BundledOfflineDocChat-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -249,6 +266,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				D13F7B0A2C884E19A2317C42 /* DocumentFilePicker.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,7 +279,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = XXPN5NHK97;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = BundledOfflineDocChat/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -275,8 +297,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiltex.corinsightssaviantnew;
 				PRODUCT_NAME = BundledOfflineDocChat;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Mobiltex_Latest_ProfileDistribution;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -289,7 +313,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = XXPN5NHK97;
 				INFOPLIST_FILE = BundledOfflineDocChat/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -302,8 +330,10 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mobiltex.corinsightssaviantnew;
 				PRODUCT_NAME = BundledOfflineDocChat;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Mobiltex_Latest_ProfileDistribution;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -370,6 +400,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -378,7 +409,10 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -435,6 +469,7 @@
 					"\"$(inherited)\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -443,7 +478,9 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

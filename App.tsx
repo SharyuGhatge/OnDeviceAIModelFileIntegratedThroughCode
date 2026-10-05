@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  NativeModules,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -21,48 +22,38 @@ type ChatMessage = { role: 'user' | 'assistant'; text: string };
 const MODEL_FILENAME = 'Qwen2.5-0.5B-Instruct-Q4_K_M.gguf';
 const ANDROID_ASSET_PATH = 'models/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf';
 const STOP_WORDS = ['</s>', '<|end|>', '<|eot_id|>', '<|end_of_text|>', '<|im_end|>', '<|end_of_turn|>'];
-const CHUNKS = splitIntoChunks(SAMPLE_DOCUMENT);
+const { DocumentFilePicker } = NativeModules;
 
 export default function App() {
   const [context, setContext] = useState<LlamaContext | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
+  const [documentText, setDocumentText] = useState(SAMPLE_DOCUMENT);
+  const [documentName, setDocumentName] = useState('Pinecone office guide');
+  const [documentError, setDocumentError] = useState('');
+  const [loadingDocument, setLoadingDocument] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const chunks = useMemo(() => splitIntoChunks(documentText), [documentText]);
 
   useEffect(() => {
     let cancelled = false;
     let loadedContext: LlamaContext | null = null;
-
     const loadModel = async () => {
       try {
         let modelPath: string;
         if (Platform.OS === 'android') {
           modelPath = `${RNFS.DocumentDirectoryPath}/${MODEL_FILENAME}`;
-          if (!(await RNFS.exists(modelPath))) {
-            await RNFS.copyFileAssets(ANDROID_ASSET_PATH, modelPath);
-          }
+          if (!(await RNFS.exists(modelPath))) await RNFS.copyFileAssets(ANDROID_ASSET_PATH, modelPath);
         } else {
           modelPath = `${RNFS.MainBundlePath}/${MODEL_FILENAME}`;
         }
-
-        loadedContext = await initLlama(
-          {
-            model: modelPath,
-            use_mlock: true,
-            n_ctx: 2048,
-            n_gpu_layers: Platform.OS === 'ios' ? 99 : 0,
-          },
-        );
-
-        if (cancelled) {
-          await loadedContext.release();
-          return;
-        }
+        loadedContext = await initLlama({ model: modelPath, use_mlock: true, n_ctx: 2048, n_gpu_layers: Platform.OS === 'ios' ? 99 : 0 });
+        if (cancelled) { await loadedContext.release(); return; }
         setContext(loadedContext);
       } catch (error) {
         if (!cancelled) {
-          setMessages([{ role: 'assistant', text: 'The chat could not start. Please restart the app.' }]);
+          setMessages([{ role: 'assistant', text: error instanceof Error ? `The local model could not be loaded: ${error.message}` : 'The local model could not be loaded.' }]);
         }
       }
     };
@@ -74,15 +65,46 @@ export default function App() {
     };
   }, []);
 
+  const chooseDocument = async () => {
+    if (loadingDocument || busy) return;
+    setLoadingDocument(true);
+    setDocumentError('');
+    try {
+      const selected: { path: string; name: string } | null = await DocumentFilePicker.pickDocument();
+      if (!selected) return;
+      const extension = selected.name.split('.').pop()?.toLowerCase();
+      if (!['txt', 'md', 'pdf', 'docx'].includes(extension ?? '')) {
+        setDocumentError('Choose a .txt, .md, .pdf, or Word (.docx) file.');
+        return;
+      }
+      const content = extension === 'pdf'
+        ? await DocumentFilePicker.extractPdfText(selected.path)
+        : extension === 'docx'
+          ? await DocumentFilePicker.extractDocxText(selected.path)
+          : await RNFS.readFile(selected.path, 'utf8');
+      if (!content.trim()) {
+        setDocumentError('No searchable text was found in that file. Scanned PDFs need OCR before their text can be searched.');
+        return;
+      }
+      setDocumentText(content);
+      setDocumentName(selected.name);
+      setMessages([]);
+    } catch (error) {
+      if ((error as { code?: string })?.code !== 'E_PICKER_CANCELLED') setDocumentError(error instanceof Error ? error.message : 'The selected document could not be read.');
+    } finally {
+      setLoadingDocument(false);
+    }
+  };
+
   const ask = async () => {
     const prompt = question.trim();
     if (!prompt || !context || busy) return;
 
-    const relevant = findRelevantPassages(CHUNKS, prompt);
+    const relevant = findRelevantPassages(chunks, prompt);
     setQuestion('');
     setMessages((previous) => [...previous, { role: 'user', text: prompt }]);
     if (!relevant.length || relevant[0].score < 0.08) {
-      setMessages((previous) => [...previous, { role: 'assistant', text: 'I could not find a relevant passage in the sample guide.' }]);
+      setMessages((previous) => [...previous, { role: 'assistant', text: `I could not find a relevant passage in ${documentName}.` }]);
       return;
     }
 
@@ -116,8 +138,12 @@ export default function App() {
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.header}>
-          <Text style={styles.title}>Pinecone Guide</Text>
-          <Text style={styles.subtitle}>Ask a question to get started.</Text>
+          <Text style={styles.title}>AI Guide Chatbot</Text>
+          <Text style={styles.subtitle}>Selected file: {documentName}</Text>
+          <Pressable style={styles.fileButton} onPress={chooseDocument} disabled={loadingDocument || busy}>
+            {loadingDocument ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.fileButtonText}>Choose file</Text>}
+          </Pressable>
+          {!!documentError && <Text style={styles.documentErrorText}>{documentError}</Text>}
         </View>
 
         <ScrollView
@@ -133,7 +159,7 @@ export default function App() {
                 <>
                   <Text style={styles.spark}>✳</Text>
                   <Text style={styles.emptyTitle}>How can I help?</Text>
-                  <Text style={styles.emptyText}>Try asking about office hours, travel expenses, visitors, IT support, or safety.</Text>
+                  <Text style={styles.emptyText}>Ask a question about {documentName}.</Text>
                 </>
               ) : <ActivityIndicator style={styles.loader} color="#456456" />}
             </View>
@@ -152,7 +178,7 @@ export default function App() {
               style={styles.input}
               value={question}
               onChangeText={setQuestion}
-              placeholder="Message about the office guide…"
+              placeholder={`Message about ${documentName}…`}
               placeholderTextColor="#8A938D"
               editable={!busy}
               onSubmitEditing={ask}
@@ -174,6 +200,9 @@ const styles = StyleSheet.create({
   header: { paddingTop: 16, paddingBottom: 18 },
   title: { color: '#16231C', fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
   subtitle: { color: '#65726A', marginTop: 5, fontSize: 13 },
+  fileButton: { alignSelf: 'flex-start', backgroundColor: '#315C40', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginTop: 12, minWidth: 130, alignItems: 'center' },
+  fileButtonText: { color: '#FFFFFF', fontWeight: '600', fontSize: 13 },
+  documentErrorText: { color: '#A23830', fontSize: 12, marginTop: 8 },
   chat: { flex: 1, marginTop: 14 },
   chatContent: { flexGrow: 1, paddingBottom: 12, justifyContent: 'flex-end' },
   emptyState: { alignItems: 'center', paddingHorizontal: 24, paddingVertical: 34 },
